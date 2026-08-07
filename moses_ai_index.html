@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moses AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f7f8ff;font-family:Arial,sans-serif}
+.app{max-width:760px;margin:auto;min-height:100vh;display:flex;flex-direction:column}
+header{padding:18px;display:flex;align-items:center;border-bottom:1px solid #202840}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#7c5cff,#22d3ee);display:grid;place-items:center;font-weight:900;font-size:21px;margin-right:12px}
+h1{margin:0;font-size:20px}.tag{font-size:11px;color:#9da8c4;margin-top:3px}
+main{flex:1;padding:22px 18px 100px}.hero{text-align:center;padding:25px 0}.hero h2{font-size:30px;margin:0 0 8px}.hero p{color:#aeb8d1}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0}.mode{padding:16px;border-radius:17px;background:#121a2e;border:1px solid #26324e;color:#fff;text-align:left;font-size:14px}.mode b{display:block;margin-top:6px}.mode small{color:#9da8c4}
+.chat{background:#10182a;border:1px solid #26324e;border-radius:18px;padding:12px}.messages{height:360px;overflow:auto}.msg{max-width:88%;padding:11px 13px;border-radius:15px;margin:9px 0;line-height:1.45;white-space:pre-wrap}.bot{background:#1b2640}.user{background:#6655e8;margin-left:auto}
+.row{display:flex;gap:8px}.row input{flex:1;background:#090f1d;border:1px solid #2b3855;color:#fff;border-radius:13px;padding:13px;outline:none}.row button{border:0;border-radius:13px;background:#725cff;color:#fff;padding:0 17px;font-weight:bold}
+.status{font-size:11px;color:#7f8ba8;padding:6px 2px}
+footer{position:fixed;bottom:0;left:0;right:0;text-align:center;background:#0b1020;border-top:1px solid #202840;padding:12px;color:#71809f;font-size:11px}
+@media(min-width:700px){footer{position:static}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">M</div><div><h1>Moses AI</h1><div class="tag">Think smarter. Create faster.</div></div></header>
+<main>
+<section class="hero"><h2>What can I help you with?</h2><p>Your personal AI assistant for learning, business and creativity.</p></section>
+<div class="modes">
+<button class="mode" onclick="setMode('Study')">📚 <b>Study</b><small>Learn difficult topics simply</small></button>
+<button class="mode" onclick="setMode('Business')">💰 <b>Business</b><small>Marketing, sales & ideas</small></button>
+<button class="mode" onclick="setMode('Content')">📱 <b>Content</b><small>Scripts, hooks & captions</small></button>
+<button class="mode" onclick="setMode('Design')">🎨 <b>Design</b><small>Creative prompts & concepts</small></button>
+</div>
+<section class="chat">
+<div id="messages" class="messages"><div class="msg bot">Hi! I'm Moses AI. Choose a mode or ask me anything.</div></div>
+<div id="status" class="status"></div>
+<div class="row"><input id="input" placeholder="Ask Moses AI..." onkeydown="if(event.key==='Enter')send()"><button onclick="send()">Send</button></div>
+</section>
+</main>
+<footer>Moses AI • V2 Prototype</footer>
+</div>
+<script>
+let mode="General";
+function setMode(m){mode=m;add("Moses AI is now in "+m+" mode. What would you like help with?","bot");document.getElementById("input").focus()}
+function add(text,type){const d=document.createElement("div");d.className="msg "+type;d.textContent=text;const box=document.getElementById("messages");box.appendChild(d);box.scrollTop=box.scrollHeight}
+async function send(){
+ const input=document.getElementById("input"), message=input.value.trim(); if(!message)return;
+ add(message,"user");input.value="";document.getElementById("status").textContent="Moses AI is thinking…";
+ try{
+  const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Mode: "+mode+"\nUser: "+message})});
+  const data=await r.json();
+  if(!r.ok) throw new Error(data.error||"Request failed");
+  add(data.reply||"I couldn't generate a response.","bot");
+ }catch(e){add("Sorry, Moses AI couldn't connect right now. "+e.message,"bot")}
+ document.getElementById("status").textContent="";
+}
+</script>
+</body>
+</html>
