@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020"><title>Moses AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f7f8ff;font-family:Arial,sans-serif}
+.app{max-width:760px;margin:auto;min-height:100vh;display:flex;flex-direction:column}
+header{padding:16px 18px;display:flex;align-items:center;border-bottom:1px solid #202840;background:#0b1020}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#7c5cff,#22d3ee);display:grid;place-items:center;font-weight:900;font-size:21px;margin-right:12px}
+h1{margin:0;font-size:20px}.tag{font-size:11px;color:#9da8c4;margin-top:3px}
+main{flex:1;padding:18px}.hero{text-align:center;padding:18px 0 10px}.hero h2{font-size:29px;margin:0 0 8px}.hero p{color:#aeb8d1;margin:0}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0}.mode{padding:15px;border-radius:17px;background:#121a2e;border:1px solid #26324e;color:#fff;text-align:left}.mode b{display:block;margin-top:6px}.mode small{color:#9da8c4}
+.chat{background:#10182a;border:1px solid #26324e;border-radius:18px;padding:12px}.messages{height:350px;overflow:auto}.msg{max-width:88%;padding:11px 13px;border-radius:15px;margin:9px 0;line-height:1.45;white-space:pre-wrap}.bot{background:#1b2640}.user{background:#6655e8;margin-left:auto}
+.quick{display:flex;gap:8px;overflow:auto;padding:4px 0 10px}.quick button,.voice button{white-space:nowrap;background:#151f35;border:1px solid #2a3856;color:#dce3f5;border-radius:12px;padding:9px 11px}
+.status{font-size:11px;color:#7f8ba8;min-height:22px;padding:5px 2px}.row{display:flex;gap:8px}.row input{flex:1;background:#090f1d;border:1px solid #2b3855;color:#fff;border-radius:13px;padding:13px;outline:none;min-width:0}.row button{border:0;border-radius:13px;background:#725cff;color:#fff;padding:0 17px;font-weight:bold}
+.voice{display:flex;gap:8px;margin-top:9px}.voice button{flex:1}.voice button.active{background:#725cff}.note{font-size:11px;color:#7886a4;text-align:center;margin-top:9px}footer{text-align:center;border-top:1px solid #202840;padding:12px;color:#71809f;font-size:11px}
+</style></head>
+<body><div class="app">
+<header><div class="logo">M</div><div><h1>Moses AI</h1><div class="tag">Think smarter. Create faster.</div></div></header>
+<main>
+<section class="hero"><h2>What can I help you with?</h2><p>Your personal AI assistant for learning, business and creativity.</p></section>
+<div class="modes">
+<button class="mode" onclick="setMode('Study')">📚 <b>Study</b><small>Learn difficult topics simply</small></button>
+<button class="mode" onclick="setMode('Business')">💰 <b>Business</b><small>Marketing, sales & ideas</small></button>
+<button class="mode" onclick="setMode('Content')">📱 <b>Content</b><small>Scripts, hooks & captions</small></button>
+<button class="mode" onclick="setMode('Design')">🎨 <b>Design</b><small>Creative prompts & concepts</small></button>
+</div>
+<section class="chat">
+<div id="messages" class="messages"><div class="msg bot">Hi! I'm Moses AI. Choose a mode or ask me anything.</div></div>
+<div class="quick"><button onclick="quickAsk('Explain this topic to me like I am 10 years old.')">Explain simply</button><button onclick="quickAsk('Give me 5 practical ideas I can use today.')">Give me ideas</button><button onclick="quickAsk('Help me create a step-by-step plan.')">Make a plan</button></div>
+<div id="status" class="status"></div>
+<div class="row"><input id="input" placeholder="Ask Moses AI..." onkeydown="if(event.key==='Enter')send()"><button onclick="send()">Send</button></div>
+<div class="voice"><button id="mic" onclick="startVoice()">🎙️ Voice input</button><button onclick="speakLast()">🔊 Read answer</button></div>
+<div class="note">Voice input and read-aloud use your browser.</div>
+</section></main><footer>Moses AI • Personal AI Assistant</footer></div>
+<script>
+let mode='General',lastReply='';
+const input=document.getElementById('input'),messages=document.getElementById('messages'),status=document.getElementById('status'),mic=document.getElementById('mic');
+function add(text,type){const d=document.createElement('div');d.className='msg '+type;d.textContent=text;messages.appendChild(d);messages.scrollTop=messages.scrollHeight;if(type==='bot')lastReply=text}
+function setMode(m){mode=m;add('Moses AI is now in '+m+' mode. What would you like help with?','bot');input.focus()}
+function quickAsk(t){input.value=t;send()}
+async function send(){const message=input.value.trim();if(!message)return;add(message,'user');input.value='';status.textContent='Moses AI is thinking…';try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Mode: '+mode+'\nUser: '+message})});const data=await r.json();if(!r.ok)throw new Error(data.error||'Request failed');add(data.reply||'I could not generate a response.','bot')}catch(e){add('Moses AI could not connect right now. '+e.message,'bot')}status.textContent=''}
+function startVoice(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){status.textContent='Voice input is not supported by this browser.';return}const r=new R();r.lang='en-NG';r.interimResults=false;mic.classList.add('active');mic.textContent='🎙️ Listening…';status.textContent='Speak now.';r.onresult=e=>{input.value=e.results[0][0].transcript;status.textContent='Voice captured. Tap Send.'};r.onerror=()=>status.textContent='I could not hear you. Try again.';r.onend=()=>{mic.classList.remove('active');mic.textContent='🎙️ Voice input'};r.start()}
+function speakLast(){if(!lastReply){status.textContent='Ask Moses AI something first.';return}if(!('speechSynthesis' in window)){status.textContent='Text-to-speech is not supported here.';return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(lastReply);u.lang='en-NG';speechSynthesis.speak(u)}
+</script></body></html>
